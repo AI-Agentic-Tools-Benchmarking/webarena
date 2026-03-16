@@ -18,11 +18,14 @@ This REAME file host the instructions for our Docker images and quick start guid
 We provide AMI which have all the websites pre-installed. You can use the AMI to start a new EC2 instance.
 
 ```
-AMI Information: find in console, EC2 - AMI Catalog
-Region: us-east-2
+AMI Information (EC2 console > AMIs). IMPORTANT: AMIs are region-scoped.
+Region: us-east-2 (Ohio)
+Visibility: Public (available to all accounts in us-east-2)
 Name: webarena-with-configurable-map-backend
 ID: ami-08a862bf98e3bd7aa
 ```
+
+Note: If you cannot find the AMI, make sure the EC2 console region is switched to us-east-2 (Ohio).
 
 1. Create a security group that allows all inbound traffic, or at minimum, create a security group with the following inbound rules:
    - SSH (port 22) from your IP
@@ -75,6 +78,7 @@ docker exec shopping_admin /var/www/magento2/bin/magento setup:store-config:set 
 docker exec shopping_admin mysql -u magentouser -pMyPassword magentodb -e  'UPDATE core_config_data SET value="http://<your-server-hostname>:7780/" WHERE path = "web/secure/base_url";'
 docker exec shopping_admin /var/www/magento2/bin/magento cache:flush
 
+docker exec gitlab update-permissions
 docker exec gitlab sed -i "s|^external_url.*|external_url 'http://<your-server-hostname>:8023'|" /etc/gitlab/gitlab.rb
 docker exec gitlab gitlab-ctl reconfigure
 ```
@@ -82,7 +86,7 @@ docker exec gitlab gitlab-ctl reconfigure
 **If GitLab shows 502 errors**, run:
 ```bash
 docker exec gitlab rm -f /var/opt/gitlab/postgresql/data/postmaster.pid
-docker exec gitlab /opt/gitlab/embedded/bin/pg_resetwal -f /var/opt/gitlab/postgresql/data
+docker exec -u gitlab-psql gitlab /opt/gitlab/embedded/bin/pg_resetwal -f /var/opt/gitlab/postgresql/data
 docker exec gitlab gitlab-ctl restart
 ```
 
